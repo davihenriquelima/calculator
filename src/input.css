@@ -4,7 +4,7 @@
 
 @layer components {
     .buttonPattern {
-        @apply min-w-full h-9 bg-emerald-50 border border-gray-400 rounded-sm hover:shadow-md;
+        @apply min-w-full h-9 bg-emerald-50 border border-gray-400 rounded-sm hover:shadow-md active:shadow-inner active:bg-emerald-100;
     }
 }
 
