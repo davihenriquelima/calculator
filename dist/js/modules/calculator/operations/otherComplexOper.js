@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.raise = exports.squareRoot = exports.mod = void 0;
+exports.factorial = exports.raise = exports.squareRoot = exports.mod = void 0;
 function mod(x, y) {
     return x % y;
 }
@@ -26,3 +26,12 @@ function raise(base, ex) {
     return res;
 }
 exports.raise = raise;
+function factorial(x) {
+    let res = 1;
+    while (x > 1) {
+        res *= x;
+        x--;
+    }
+    return res;
+}
+exports.factorial = factorial;

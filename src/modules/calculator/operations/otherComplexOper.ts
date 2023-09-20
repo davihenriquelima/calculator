@@ -1,7 +1,7 @@
 /* funções mais complexas, como operações com números complexos, funções especiais, logaritmo natural, parte real, parte imaginária, função f(x), etc */
 
 export function mod(x:number, y:number):number{
-    return x % y
+    return x % y;
 }
 
 export function squareRoot(x: number): number {
@@ -13,16 +13,25 @@ export function squareRoot(x: number): number {
 
 export function raise(base: number, ex:number): number {
     if (ex === 0) {
-        return 1
+        return 1;
     } else if (ex === 1) {
         return base;
     }
 
-    let res = 1
+    let res = 1;
 
     for(let i = 0; i < ex; i++) {
-        res *= base
+        res *= base;
     }
 
+    return res;
+}
+
+export function factorial(x:number):number {
+    let res = 1;
+    while(x > 1) {
+        res *= x;
+        x--;
+    }
     return res
 }
