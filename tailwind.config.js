@@ -2,10 +2,13 @@
 module.exports = {
   content: [
     "**/*.html",
-    "./src/**/*.{html,ts,js}"
+    "./src/**/*.{js,jsx,ts,tsx,vue}"
   ],
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [
+    require('tailwindcss'),
+    require('autoprefixer')
+  ],
 }

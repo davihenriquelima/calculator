@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .buttonPattern {
+        @apply min-w-full h-9 bg-emerald-50 border border-gray-400 rounded-sm hover:shadow-md active:shadow-inner active:bg-emerald-100;
+    }
+    .active {
+        @apply bg-emerald-200 border border-none;
+    }
+}
+
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}

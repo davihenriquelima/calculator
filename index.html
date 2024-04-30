@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora</title>
-    <link rel="stylesheet" href="/dist/output.css">
+    <link rel="stylesheet" href="/dist/css/output.css">
 </head>
 <body class="flex min-h-screen bg-[url('/assets/images/bg-woman-and-calculator.jpg')] bg-center bg-contain bg-no-repeat">
     <div class="flex flex-col w-full absolute bottom-0">
@@ -13,13 +13,15 @@
             <div class="hidden p-2 bg-gray-100 bg-opacity-80 relative" id="display">000</div>
         </div>
         <div id="calc-input-area" class="h-16 w-full border-y border-gray-400 p-2 bg-white">
-            <input type="text" class="w-full focus-visible:outline-none text-xl" id="calc-input">
+            <div class="w-full focus-visible:outline-none text-xl" id="editable-div" contenteditable="true">
+
+            </div>
         </div>
         <div id="calculator" class="bg-gray-50 flex gap-2 w-full p-2">
             <div class="grid grid-cols-3 w-full gap-2">
-                <button class="buttonPattern" id="subscMode">&darr;n</button>
-                <button class="buttonPattern" id="sobscMode">&uarr;n</button>
-                <button class="buttonPattern" id="cientNot"><sub>x</sub>10<sup>y</sup></button>
+                <button class="buttonPattern" id="subMode">&darr;n</button>
+                <button class="buttonPattern" id="supMode">&uarr;n</button>
+                <button class="buttonPattern" id="cientNot"> ×10<sup>y</sup> </button>
                 <button class="buttonPattern" id="number7">7</button>
                 <button class="buttonPattern" id="number8">8</button>
                 <button class="buttonPattern" id="number9">9</button>
@@ -40,7 +42,7 @@
                 <button class="buttonPattern" id="divide-simbol">&div;</button>
                 <button class="buttonPattern" id="parent-tr">(</button>
                 <button class="buttonPattern" id="parent-tl">)</button>
-                <button class="buttonPattern" id="multiply-simbol">x</button>
+                <button class="buttonPattern" id="multiply-simbol">×</button>
                 <button class="buttonPattern col-span-2" id="memory">Memory</button>
                 <button class="buttonPattern" id="subtract-simbol">-</button>
                 <button class="buttonPattern" id="pi">&pi;</button>
@@ -75,5 +77,14 @@
             </div>
         </div>
     </div>
+
+
+<script src="/dist/js/inputFilling.js"></script>
+<script src="/dist/js/inputManipulation.js"></script>
+<script src="/dist/js/operations.js"></script>
+<script src="/dist/js/calculator.js"></script>
+<script src="/dist/js/display.js"></script>
+
+
 </body>
 </html>
