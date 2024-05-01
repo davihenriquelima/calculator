@@ -1,8 +1,9 @@
 // arquivo que trata os botões e suas ações de adicionar no input
+
+//selecionando os elementos a serem manipulados
 const gbi = (el:string):HTMLElement|null => {
     return document.getElementById(el);
 }
-
 const subMode = gbi('subMode') as HTMLButtonElement;
 const supMode = gbi('supMode') as HTMLButtonElement;
 const cientNot = gbi('cientNot') as HTMLButtonElement;
@@ -51,8 +52,8 @@ const imaginPart = gbi('imagin-part') as HTMLButtonElement;
 const conj = gbi('conj') as HTMLButtonElement;
 const fxSelect = gbi('fx-select') as HTMLButtonElement;
 
-// Código do subMode e do supMode
 
+// CÓDIGOS DOS MODOS SUP E SUB
 
 // funcão que adiciona o conteúdo, com ou sem sup/sub, com base nas entradas de teclado
 function sModeKeyInp(event:KeyboardEvent, mode:string) { 
@@ -106,7 +107,7 @@ let subModeManuallyActive = false;
 let subModeActive = false;
 let supModeActive = false;
 
-// funções que estarão nos eventListeners dos modos
+// funções que estarão nos eventListeners dos modos sup e sub
 function sModeKeyInpSub(event: KeyboardEvent) {
   sModeKeyInp(event, 'sub');
 }
@@ -124,7 +125,7 @@ function toggleMode(mode:string) {
 
             if (supModeActive) {
                 supModeActive = false;
-                supModeManuallyActive = false
+                supModeManuallyActive = false;
                 supMode.classList.remove('active');
             }
 
@@ -153,14 +154,10 @@ function toggleMode(mode:string) {
 
         if (isSubActive) {
             input.addEventListener('keydown', sModeKeyInpSub);
-        } else {
-            input.removeEventListener('keydown', sModeKeyInpSub);
-        }
-        
-        if (isSupActive) {
-            input.addEventListener('keydown', sModeKeyInpSup);
-        } else {
             input.removeEventListener('keydown', sModeKeyInpSup);
+        } else if(isSupActive) {
+            input.removeEventListener('keydown', sModeKeyInpSub);
+            input.addEventListener('keydown', sModeKeyInpSup);
         }
 
         moveCursorToEnd(input)
@@ -188,9 +185,9 @@ function buttonContent(event:Event) {
     const spacedIds = ['mod-simbol', 'cos-simbol', 'sin-simbol', 'tan-simbol', 'cosh-simbol', 'sinh-simbol', 'tanh-simbol']
     if(spacedIds.includes(el.id)) {
         if(input.innerHTML === '') {
-            input.innerHTML += `${content} `;
+            input.innerHTML += content + ' ';
         } else {
-            input.innerHTML += ` ${content} `;
+            input.innerHTML += ' ' + content;
         }
     } else if(el.id === 'cientNot') {
         cientNotActive = !cientNotActive
