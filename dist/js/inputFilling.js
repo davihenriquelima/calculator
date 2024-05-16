@@ -3,7 +3,7 @@ const gbi = (el) => {
     return document.getElementById(el);
 };
 const subMode = gbi('subMode');
-const supMode = gbi('supMode');
+const superMode = gbi('superMode');
 const cientNot = gbi('cientNot');
 const seven = gbi('number7');
 const eight = gbi('number8');
@@ -49,66 +49,29 @@ const realPart = gbi('real-part');
 const imaginPart = gbi('imagin-part');
 const conj = gbi('conj');
 const fxSelect = gbi('fx-select');
-function sModeKeyInp(event, mode) {
-    const validCharRegex = /^[0-9a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]$/;
-    if (!validCharRegex.test(event.key)) {
-        return;
-    }
-    let inputContent = input.innerHTML;
-    if (inputContent.length === 0) {
-        if ((event.key.match(/[0-9]/))) {
-            let newElement = document.createElement(mode);
-            input.appendChild(newElement);
-            newElement.innerHTML += event.key;
-            event.preventDefault();
-        }
-        else if (event.key.match(/[a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]/)) {
-            input.innerHTML = event.key;
-            event.preventDefault();
-        }
-    }
-    else {
-        if (event.key.match(/[0-9]/)) {
-            if (inputContent.endsWith(`</${mode}>`)) {
-                input.innerHTML = inputContent.slice(0, -6) + event.key + `</${mode}>`;
-                event.preventDefault();
-            }
-            else {
-                let newElement = document.createElement(mode);
-                input.appendChild(newElement);
-                newElement.innerHTML += event.key;
-                event.preventDefault();
-            }
-        }
-        else if (event.key.match(/[a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]/)) {
-            input.innerHTML = inputContent + event.key;
-            event.preventDefault();
-        }
-    }
-    moveCursorToEnd(input);
-}
-let supModeManuallyActive = false;
+const backspaceButton = gbi('backspace');
+let superModeManuallyActive = false;
 let subModeManuallyActive = false;
 let subModeActive = false;
-let supModeActive = false;
-function sModeKeyInpSub(event) {
-    sModeKeyInp(event, 'sub');
-}
-function sModeKeyInpSup(event) {
-    sModeKeyInp(event, 'sup');
-}
+let superModeActive = false;
+let cientNotActive;
 function toggleMode(mode) {
     return () => {
         if (mode === 'sub') {
             subModeActive = !subModeActive;
-            if (supModeActive) {
-                supModeActive = false;
-                supModeManuallyActive = false;
-                supMode.classList.remove('active');
+            if (superModeActive) {
+                superModeActive = false;
+                superModeManuallyActive = false;
+                superMode.classList.remove('active');
             }
         }
-        else if (mode === 'sup') {
-            supModeActive = !supModeActive;
+        else if (mode === 'super') {
+            if (cientNotActive) {
+                superModeActive = true;
+            }
+            else {
+                superModeActive = !superModeActive;
+            }
             if (subModeActive) {
                 subModeActive = false;
                 subModeManuallyActive = false;
@@ -117,7 +80,7 @@ function toggleMode(mode) {
         }
         const activeModes = {
             subModeActive: subModeActive,
-            supModeActive: supModeActive
+            superModeActive: superModeActive
         };
         const activeClass = `${mode}ModeActive`;
         const modeElement = document.getElementById(`${mode}Mode`);
@@ -125,87 +88,128 @@ function toggleMode(mode) {
             modeElement.classList.toggle('active', activeModes[activeClass]);
         }
         const isSubActive = subModeManuallyActive || activeModes.subModeActive;
-        const isSupActive = supModeManuallyActive || activeModes.supModeActive;
+        const isSuperActive = superModeManuallyActive || activeModes.superModeActive;
         if (isSubActive) {
-            input.addEventListener('keydown', sModeKeyInpSub);
+            input.addEventListener('keydown', subModeCallBack);
+            input.removeEventListener('keydown', superModeCallBack);
+        }
+        else if (isSuperActive) {
+            input.addEventListener('keydown', superModeCallBack);
+            input.removeEventListener('keydown', subModeCallBack);
         }
         else {
-            input.removeEventListener('keydown', sModeKeyInpSub);
+            input.removeEventListener('keydown', subModeCallBack);
+            input.removeEventListener('keydown', superModeCallBack);
+            input.addEventListener('keydown', (event) => keyboardFills(event, ''));
         }
-        if (isSupActive) {
-            input.addEventListener('keydown', sModeKeyInpSup);
-        }
-        else {
-            input.removeEventListener('keydown', sModeKeyInpSup);
-        }
-        moveCursorToEnd(input);
     };
 }
-subMode.addEventListener('click', () => {
-    subModeManuallyActive = !subModeManuallyActive;
-    toggleMode('sub')();
-});
-supMode.addEventListener('click', () => {
-    supModeManuallyActive = !supModeManuallyActive;
-    toggleMode('sup')();
-});
-let cientNotActive = false;
-function buttonContent(event) {
+function keyboardFills(event, mode) {
+    const validCharRegex = /^[0-9a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]$/;
+    if (!validCharRegex.test(event.key)) {
+        return;
+    }
+    let inputContent = input.innerHTML;
+    if (typeof mode !== 'undefined') {
+        if (inputContent.length === 0) {
+            if ((event.key.match(/[0-9]/))) {
+                let newElement = document.createElement(mode);
+                input.appendChild(newElement);
+                newElement.innerHTML += event.key;
+            }
+            else if (event.key.match(/[a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]/)) {
+                input.innerHTML = event.key;
+            }
+        }
+        else {
+            if (event.key.match(/[0-9]/)) {
+                if (inputContent.endsWith(`</${mode}>`)) {
+                    input.innerHTML = inputContent.slice(0, -6) + event.key + `</${mode}>`;
+                }
+                else {
+                    let newElement = document.createElement(mode);
+                    input.appendChild(newElement);
+                    newElement.innerHTML += event.key;
+                }
+            }
+            else if (event.key.match(/[a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]/)) {
+                input.innerHTML = inputContent + event.key;
+            }
+        }
+    }
+    else {
+        input.innerHTML += event.key;
+    }
+    event.preventDefault();
+    moveCursorToEnd(input);
+}
+function buttonsFills(event) {
     let el = event.target;
     let content = el.innerHTML;
     const spacedIds = ['mod-simbol', 'cos-simbol', 'sin-simbol', 'tan-simbol', 'cosh-simbol', 'sinh-simbol', 'tanh-simbol'];
     if (spacedIds.includes(el.id)) {
         if (input.innerHTML === '') {
-            input.innerHTML += `${content} `;
+            input.innerHTML += content + ' ';
         }
         else {
-            input.innerHTML += ` ${content} `;
+            input.innerHTML += ' ' + content;
         }
     }
     else if (el.id === 'cientNot') {
-        cientNotActive = !cientNotActive;
+        cientNotActive = true;
         const extractedText = content.replace(/<sup>.*?<\/sup>/, '');
         input.innerHTML += extractedText;
-        if (cientNotActive && supModeManuallyActive === false && supModeActive === false) {
-            toggleMode('sup')();
-        }
+        toggleMode('super')();
     }
     else {
         input.innerHTML += content;
     }
     moveCursorToEnd(input);
 }
-cientNot.addEventListener('click', buttonContent);
-seven.addEventListener('click', buttonContent);
-eight.addEventListener('click', buttonContent);
-nine.addEventListener('click', buttonContent);
-four.addEventListener('click', buttonContent);
-five.addEventListener('click', buttonContent);
-six.addEventListener('click', buttonContent);
-one.addEventListener('click', buttonContent);
-two.addEventListener('click', buttonContent);
-tree.addEventListener('click', buttonContent);
-zero.addEventListener('click', buttonContent);
-point.addEventListener('click', buttonContent);
-i.addEventListener('click', buttonContent);
-modSimbol.addEventListener('click', buttonContent);
-divideSimbol.addEventListener('click', buttonContent);
-multiplySimbol.addEventListener('click', buttonContent);
-subtractSimbol.addEventListener('click', buttonContent);
-addSimbol.addEventListener('click', buttonContent);
-parentTr.addEventListener('click', buttonContent);
-parentTl.addEventListener('click', buttonContent);
-pi.addEventListener('click', buttonContent);
-euler.addEventListener('click', buttonContent);
-cosSimbol.addEventListener('click', buttonContent);
-sinSimbol.addEventListener('click', buttonContent);
-tanSimbol.addEventListener('click', buttonContent);
-coshSimbol.addEventListener('click', buttonContent);
-sinhSimbol.addEventListener('click', buttonContent);
-tanhSimbol.addEventListener('click', buttonContent);
-undo.addEventListener('click', () => {
+function subModeCallBack(event) {
+    keyboardFills(event, 'sub');
+}
+function superModeCallBack(event) {
+    keyboardFills(event, 'sup');
+}
+subMode.addEventListener('click', () => {
+    subModeManuallyActive = !subModeManuallyActive;
+    toggleMode('sub')();
 });
-erase.addEventListener('click', () => {
-    input.innerHTML = '';
-    input.focus();
+superMode.addEventListener('click', () => {
+    if (cientNotActive && superModeActive) {
+        cientNotActive = false;
+    }
+    else {
+        superModeManuallyActive = !superModeManuallyActive;
+    }
+    toggleMode('super')();
 });
+cientNot.addEventListener('click', buttonsFills);
+seven.addEventListener('click', buttonsFills);
+eight.addEventListener('click', buttonsFills);
+nine.addEventListener('click', buttonsFills);
+four.addEventListener('click', buttonsFills);
+five.addEventListener('click', buttonsFills);
+six.addEventListener('click', buttonsFills);
+one.addEventListener('click', buttonsFills);
+two.addEventListener('click', buttonsFills);
+tree.addEventListener('click', buttonsFills);
+zero.addEventListener('click', buttonsFills);
+point.addEventListener('click', buttonsFills);
+i.addEventListener('click', buttonsFills);
+modSimbol.addEventListener('click', buttonsFills);
+divideSimbol.addEventListener('click', buttonsFills);
+multiplySimbol.addEventListener('click', buttonsFills);
+subtractSimbol.addEventListener('click', buttonsFills);
+addSimbol.addEventListener('click', buttonsFills);
+parentTr.addEventListener('click', buttonsFills);
+parentTl.addEventListener('click', buttonsFills);
+pi.addEventListener('click', buttonsFills);
+euler.addEventListener('click', buttonsFills);
+cosSimbol.addEventListener('click', buttonsFills);
+sinSimbol.addEventListener('click', buttonsFills);
+tanSimbol.addEventListener('click', buttonsFills);
+coshSimbol.addEventListener('click', buttonsFills);
+sinhSimbol.addEventListener('click', buttonsFills);
+tanhSimbol.addEventListener('click', buttonsFills);

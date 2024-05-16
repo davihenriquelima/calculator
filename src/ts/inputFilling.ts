@@ -1,11 +1,11 @@
-// arquivo que trata os botões e suas ações de adicionar no input
+// arquivo que trata os botões e suas ações para preencher o input
 
 //selecionando os elementos a serem manipulados
 const gbi = (el:string):HTMLElement|null => {
     return document.getElementById(el);
 }
 const subMode = gbi('subMode') as HTMLButtonElement;
-const supMode = gbi('supMode') as HTMLButtonElement;
+const superMode = gbi('superMode') as HTMLButtonElement;
 const cientNot = gbi('cientNot') as HTMLButtonElement;
 const seven = gbi('number7') as HTMLButtonElement;
 const eight = gbi('number8') as HTMLButtonElement;
@@ -51,12 +51,94 @@ const realPart = gbi('real-part') as HTMLButtonElement;
 const imaginPart = gbi('imagin-part') as HTMLButtonElement;
 const conj = gbi('conj') as HTMLButtonElement;
 const fxSelect = gbi('fx-select') as HTMLButtonElement;
-
+const backspaceButton = gbi('backspace') as HTMLButtonElement;
 
 // CÓDIGOS DOS MODOS SUP E SUB
 
-// funcão que adiciona o conteúdo, com ou sem sup/sub, com base nas entradas de teclado
-function sModeKeyInp(event:KeyboardEvent, mode:string) { 
+// variáveis de controle dos modos
+let superModeManuallyActive = false;
+let subModeManuallyActive = false;
+let subModeActive = false;
+let superModeActive = false;
+let cientNotActive:boolean;
+
+// função para alternar os modos entre super e sub ou desativa os dois
+function toggleMode(mode:string) {
+    return ()=> {
+
+        if (mode === 'sub') {
+            subModeActive = !subModeActive;
+
+            if (superModeActive) {
+                superModeActive = false;
+                superModeManuallyActive = false;
+                superMode.classList.remove('active');
+            }
+
+        } else if (mode === 'super') {
+            if(cientNotActive) { // se o cienNot estiver ativo :
+                superModeActive = true; // o superModeActive vai ser sempre true
+            } else {
+                superModeActive = !superModeActive; // caso contrário apenas troca o estado
+            }
+
+            /* superModeActive estará sempre ativo através do controle recebido no 
+            código do cientNot, que define cientNotActive como true. E ao clicar no botão 
+            supMode ele vai desativar o cientNotActive e executar toggleMode, que por sua vez, 
+            na linha acima, vai desativar superModeActive, que nas linhas abaixo surtirá efeito visual,
+            para que tenhamos o controle correto. Pois se foi clicado no botão cientNot, significa que
+            foi adicionado o valor "x10" no input e espera-se um valor de potência, que deverá ser adicionado dentro do
+            superMode.*/
+
+            if (subModeActive) {
+                subModeActive = false;
+                subModeManuallyActive = false
+                subMode.classList.remove('active');
+            }
+        }
+        // Cria um objeto com os modos ativos para determinar qual classe CSS adicionar/remover
+        const activeModes: { [key: string]: boolean } = {
+            subModeActive: subModeActive,
+            superModeActive: superModeActive
+        };
+
+        // Cria uma string para a classe CSS correspondente ao modo ativo
+        const activeClass: string = `${mode}ModeActive`;
+
+        // Obtém o elemento HTML do modo atual (subMode ou superMode)
+        const modeElement: Element | null = document.getElementById(`${mode}Mode`);
+
+        // Se o elemento do modo existir, adiciona ou remove a classe CSS 'active' com base no estado do modo
+        if (modeElement) {
+            modeElement.classList.toggle('active', activeModes[activeClass]);
+        }
+
+        // Verifica se o modo sub está ativo
+        const isSubActive = subModeManuallyActive || activeModes.subModeActive;
+
+        // Verifica se o modo super está ativo
+        const isSuperActive = superModeManuallyActive || activeModes.superModeActive;
+
+        // Adiciona ou remove os event listeners de acordo com os modos ativos
+        if (isSubActive) {
+            // Se o modo sub estiver ativo, adiciona o event listener de subModeCallBack e remove o de superModeCallBack
+            input.addEventListener('keydown', subModeCallBack);
+            input.removeEventListener('keydown', superModeCallBack);
+        } else if (isSuperActive) {
+            // Se o modo super estiver ativo, adiciona o event listener de superModeCallBack e remove o de subModeCallBack
+            input.addEventListener('keydown', superModeCallBack);
+            input.removeEventListener('keydown', subModeCallBack);
+        } else {
+            // Se nenhum dos modos estiver ativo, remove ambos os event listeners e executa o preenchimento sem os subs
+            input.removeEventListener('keydown', subModeCallBack);
+            input.removeEventListener('keydown', superModeCallBack);
+            input.addEventListener('keydown', (event)=>keyboardFills(event, ''));
+        }
+    }
+}
+
+// funcão que adiciona o conteúdo no input através do teclado, com ou sem sup/sub
+function keyboardFills(event:KeyboardEvent, mode:string) {
 
     const validCharRegex = /^[0-9a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]$/;
 
@@ -67,118 +149,41 @@ function sModeKeyInp(event:KeyboardEvent, mode:string) {
 
     let inputContent = input.innerHTML;
 
-    if (inputContent.length === 0) { // se o input não tem nada dentro
-        if((event.key.match(/[0-9]/))) { // se a tecla digitada corresponte a algum item dessa regex (digitou um numero)
-            let newElement = document.createElement(mode) as HTMLElement;
-            input.appendChild(newElement);
-            newElement.innerHTML += event.key;
-            event.preventDefault()
-
-        } else if (event.key.match(/[a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]/)) { // se digitou uma letra
-            input.innerHTML = event.key
-            event.preventDefault()
-        }
-
-    } else { // se já tem algo dentro do input
-        if(event.key.match(/[0-9]/)) { // se digitou um número
-        
-            if(inputContent.endsWith(`</${mode}>`)) { // se o input termina com fechamento da tag
-                input.innerHTML = inputContent.slice(0,-6) + event.key + `</${mode}>` // retira o fechamento da tag, adciona o key e fecha a tag
-                event.preventDefault();
-            } else { // se termina com qualquer outra string
+    if(typeof mode !== 'undefined') { // se o segundo parametro veio algo, ou seja, sup ou sup
+        if (inputContent.length === 0) { // se o input não tem nada dentro
+            if((event.key.match(/[0-9]/))) { // se a tecla digitada corresponte a algum item dessa regex (digitou um numero)
                 let newElement = document.createElement(mode) as HTMLElement;
                 input.appendChild(newElement);
                 newElement.innerHTML += event.key;
-                event.preventDefault();
-            }
-             
-        } else if (event.key.match(/[a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]/)) { // se digitou uma letra ou simbolo
-            input.innerHTML = inputContent + event.key;
-            event.preventDefault();
-        }
-    }
+    
+            } else if (event.key.match(/[a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]/)) { // se digitou uma letra
+                input.innerHTML = event.key
 
+            }
+        } else { // se já tem algo dentro do input
+            if(event.key.match(/[0-9]/)) { // se digitou um número
+            
+                if(inputContent.endsWith(`</${mode}>`)) { // se o input termina com fechamento da tag
+                    input.innerHTML = inputContent.slice(0,-6) + event.key + `</${mode}>` // retira o fechamento da tag, adciona o key e fecha a tag
+        
+                } else { // se termina com qualquer outra string
+                    let newElement = document.createElement(mode) as HTMLElement;
+                    input.appendChild(newElement);
+                    newElement.innerHTML += event.key;
+                }
+            } else if (event.key.match(/[a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]/)) { // se digitou uma letra ou simbolo
+                input.innerHTML = inputContent + event.key;
+            }
+        }
+    } else {
+        input.innerHTML += event.key;
+    }
+    event.preventDefault();
     moveCursorToEnd(input)
 }
 
-// variáveis de controle dos modos
-let supModeManuallyActive = false;
-let subModeManuallyActive = false;
-let subModeActive = false;
-let supModeActive = false;
-
-// funções que estarão nos eventListeners dos modos sup e sub
-function sModeKeyInpSub(event: KeyboardEvent) {
-  sModeKeyInp(event, 'sub');
-}
-
-function sModeKeyInpSup(event: KeyboardEvent) {
-  sModeKeyInp(event, 'sup');
-}
-
-// função para alternar os modos
-function toggleMode(mode:string) {
-    return ()=> {
-
-        if (mode === 'sub') {
-            subModeActive = !subModeActive;
-
-            if (supModeActive) {
-                supModeActive = false;
-                supModeManuallyActive = false;
-                supMode.classList.remove('active');
-            }
-
-        } else if (mode === 'sup') {
-            supModeActive = !supModeActive;
-
-            if (subModeActive) {
-                subModeActive = false;
-                subModeManuallyActive = false
-                subMode.classList.remove('active');
-            }
-        }
-        const activeModes: { [key: string]: boolean } = {
-            subModeActive: subModeActive,
-            supModeActive: supModeActive
-        };
-
-        const activeClass: string = `${mode}ModeActive`;
-        const modeElement: Element|null = document.getElementById(`${mode}Mode`);
-
-        if(modeElement) {
-            modeElement.classList.toggle('active', activeModes[activeClass]);
-        }
-        const isSubActive = subModeManuallyActive || activeModes.subModeActive
-        const isSupActive = supModeManuallyActive || activeModes.supModeActive
-
-        if (isSubActive) {
-            input.addEventListener('keydown', sModeKeyInpSub);
-            input.removeEventListener('keydown', sModeKeyInpSup);
-        } else if(isSupActive) {
-            input.removeEventListener('keydown', sModeKeyInpSub);
-            input.addEventListener('keydown', sModeKeyInpSup);
-        }
-
-        moveCursorToEnd(input)
-    }
-}
-
-subMode.addEventListener('click', ()=> {
-    subModeManuallyActive = !subModeManuallyActive;
-    toggleMode('sub')();
-});
-supMode.addEventListener('click', ()=> {
-    supModeManuallyActive = !supModeManuallyActive;
-    toggleMode('sup')();
-});
-
-
-// código para os botões que apenas adicionam símbolos
-
-let cientNotActive = false;
-
-function buttonContent(event:Event) {
+// função que adiciona conteúdo no input através dos botões
+function buttonsFills(event:Event) {
     let el = event.target as HTMLElement;
     let content = el.innerHTML;
 
@@ -190,58 +195,72 @@ function buttonContent(event:Event) {
             input.innerHTML += ' ' + content;
         }
     } else if(el.id === 'cientNot') {
-        cientNotActive = !cientNotActive
+        cientNotActive = true;
         const extractedText = content.replace(/<sup>.*?<\/sup>/, '');
         input.innerHTML += extractedText
-        if(cientNotActive && supModeManuallyActive === false && supModeActive === false) {
-            toggleMode('sup')();
-        }
+        toggleMode('super')();
     } else {
         input.innerHTML += content
     }
-    //fazer verificação de onde está o cursor, se não tem nada depois dele, executa moveCursor, caso contrário, significa que tem algo depois dele e eu quero escrever ali.
+    // Obs.: implementar verificação de onde está o cursor, se não tem nada depois dele, executa moveCursor, caso contrário, significa que tem algo depois dele e eu quero escrever ali.
+    //Obs.: verificar se dar pra mesclar as duas funções (buttonsFills e keyboardFills), já que ambas vão verificar se os modos sub e sup está ativo
     moveCursorToEnd(input)
 }
 
-cientNot.addEventListener('click', buttonContent)
-seven.addEventListener('click', buttonContent);
-eight.addEventListener('click', buttonContent);
-nine.addEventListener('click', buttonContent);
-four.addEventListener('click', buttonContent);
-five.addEventListener('click', buttonContent);
-six.addEventListener('click', buttonContent);
-one.addEventListener('click', buttonContent);
-two.addEventListener('click', buttonContent);
-tree.addEventListener('click', buttonContent);
-zero.addEventListener('click', buttonContent);
-point.addEventListener('click', buttonContent);
-i.addEventListener('click', buttonContent);
-modSimbol.addEventListener('click', buttonContent);
-divideSimbol.addEventListener('click', buttonContent);
-multiplySimbol.addEventListener('click', buttonContent);
-subtractSimbol.addEventListener('click', buttonContent);
-addSimbol.addEventListener('click', buttonContent);
-parentTr.addEventListener('click',  buttonContent);
-parentTl.addEventListener('click',  buttonContent);
-pi.addEventListener('click',  buttonContent);
-euler.addEventListener('click',  buttonContent);
-cosSimbol.addEventListener('click',  buttonContent);
-sinSimbol.addEventListener('click',  buttonContent);
-tanSimbol.addEventListener('click',  buttonContent);
-coshSimbol.addEventListener('click',  buttonContent);
-sinhSimbol.addEventListener('click',  buttonContent);
-tanhSimbol.addEventListener('click',  buttonContent);
+// funções de callback que estarão nos eventListeners em toggleMode
+function subModeCallBack(event: KeyboardEvent) {
+    keyboardFills(event, 'sub');
+}
 
-// código do desfazer
-undo.addEventListener('click', () => {
+function superModeCallBack(event: KeyboardEvent) {
+    keyboardFills(event, 'sup');
+}
 
-})
+// adicionando os respectivos eventListeners de clique nos botões de sup e sub 
+subMode.addEventListener('click', ()=> {
+    subModeManuallyActive = !subModeManuallyActive;
+    toggleMode('sub')();
+});
+superMode.addEventListener('click', ()=> {
+    if(cientNotActive && superModeActive) { // se cientNot está ativo e supMode também
+        cientNotActive = false; // declara cientNot como falso
+    } else {
+        superModeManuallyActive = !superModeManuallyActive; // caso contrário,apenas troca o modo
+    }
+    toggleMode('super')();
+});
 
-// código do apagar tudo
-erase.addEventListener('click', () => {
-    input.innerHTML = ''
-    input.focus()
-})
+// código para os botões que adicionam símbolos e etc
+
+cientNot.addEventListener('click', buttonsFills)
+seven.addEventListener('click', buttonsFills);
+eight.addEventListener('click', buttonsFills);
+nine.addEventListener('click', buttonsFills);
+four.addEventListener('click', buttonsFills);
+five.addEventListener('click', buttonsFills);
+six.addEventListener('click', buttonsFills);
+one.addEventListener('click', buttonsFills);
+two.addEventListener('click', buttonsFills);
+tree.addEventListener('click', buttonsFills);
+zero.addEventListener('click', buttonsFills);
+point.addEventListener('click', buttonsFills);
+i.addEventListener('click', buttonsFills);
+modSimbol.addEventListener('click', buttonsFills);
+divideSimbol.addEventListener('click', buttonsFills);
+multiplySimbol.addEventListener('click', buttonsFills);
+subtractSimbol.addEventListener('click', buttonsFills);
+addSimbol.addEventListener('click', buttonsFills);
+parentTr.addEventListener('click',  buttonsFills);
+parentTl.addEventListener('click',  buttonsFills);
+pi.addEventListener('click',  buttonsFills);
+euler.addEventListener('click',  buttonsFills);
+cosSimbol.addEventListener('click',  buttonsFills);
+sinSimbol.addEventListener('click',  buttonsFills);
+tanSimbol.addEventListener('click',  buttonsFills);
+coshSimbol.addEventListener('click',  buttonsFills);
+sinhSimbol.addEventListener('click',  buttonsFills);
+tanhSimbol.addEventListener('click',  buttonsFills);
+
 // código do Memory
 
 // código do "fatorar o número no input"

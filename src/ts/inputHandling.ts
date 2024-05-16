@@ -1,4 +1,4 @@
-const input = document.querySelector('#editable-div') as HTMLDivElement
+const input = document.querySelector('#editable-div') as HTMLDivElement;
 
 // funções que tratam o cursor
 function getAllTextNodes(node: Node): Node[] { 
@@ -32,9 +32,9 @@ function moveCursorToEnd(inputElement: HTMLElement) {
 
         if (range && sel) {
 
-          if (spaceIndex !== -1) {
-            range.setStart(lastTextNode, spaceIndex + 1); // Se houver um espaço, coloque o cursor após o último espaço.
-          } else {
+          if (spaceIndex !== -1) { //Se houver um espaço
+            range.setStart(lastTextNode, spaceIndex + 1); // coloque o cursor após o último espaço.
+          } else { // se não houver um espaço
             range.setStart(lastTextNode, textContent.length);// Define o ponto de partida do Range para ser o final do último nó de texto coletado. Isso significa que o cursor será posicionado no final desse nó de texto
           }
           range.collapse(true); // Colapsa o Range para que ele não selecione nenhum texto. Ao passar true como argumento, você está indicando que deseja que o cursor fique no ponto de início do Range, que foi definido como o final do último nó de texto
@@ -45,8 +45,8 @@ function moveCursorToEnd(inputElement: HTMLElement) {
   }
 }
 
-// tratando backspace no input
-function backspace(event:KeyboardEvent) {
+// função que trata o backspace no input através da entrada de teclado
+function backspaceOnKey(event:KeyboardEvent) {
 	if (event.key.toLowerCase() === 'backspace') {
     if(input.innerHTML === '') {
       event.preventDefault();
@@ -56,8 +56,23 @@ function backspace(event:KeyboardEvent) {
     }
   }
 }
+input.addEventListener('keydown', backspaceOnKey)
 
-input.addEventListener('keydown', backspace)
+// Código do backspace button que está no html
+backspaceButton.addEventListener('click', () => {
+  
+})
+
+// código do botão apagar tudo
+erase.addEventListener('click', () => {
+  input.innerHTML = ''
+  input.focus()
+})
+
+// código do botão desfazer
+undo.addEventListener('click', () => {
+
+})
 
 // tratando números complexos
 
@@ -76,7 +91,6 @@ input.addEventListener('keydown', backspace)
     }
     return { real: realPart, imag: imagPart };
 }*/
-
 
 /*
 function handleUserInput() {

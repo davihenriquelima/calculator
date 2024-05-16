@@ -38,7 +38,7 @@ function moveCursorToEnd(inputElement) {
         }
     }
 }
-function backspace(event) {
+function backspaceOnKey(event) {
     if (event.key.toLowerCase() === 'backspace') {
         if (input.innerHTML === '') {
             event.preventDefault();
@@ -49,4 +49,12 @@ function backspace(event) {
         }
     }
 }
-input.addEventListener('keydown', backspace);
+input.addEventListener('keydown', backspaceOnKey);
+backspaceButton.addEventListener('click', () => {
+});
+erase.addEventListener('click', () => {
+    input.innerHTML = '';
+    input.focus();
+});
+undo.addEventListener('click', () => {
+});
