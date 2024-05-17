@@ -62,6 +62,86 @@ let subModeActive = false;
 let superModeActive = false;
 let cientNotActive:boolean;
 
+// funcão que adiciona o conteúdo no input, com ou sem sup/sub
+function fillInput(event:Event, mode:string) {
+
+    const validCharRegex = /^[0-9a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]$/;
+    let inputContent = input.innerHTML;
+    let key:string;
+    let isKeyboardEvent = false;
+
+    if(event instanceof KeyboardEvent) { // se foi um evento de teclado
+        isKeyboardEvent = true;
+        key = event.key
+        if (!validCharRegex.test(event.key)) {
+            return; // retorna daqui se a tecla não for uma combinação válida
+        }
+    } else { // se não foi um keyBoardEvent, é um evento de clique nos botões da tela
+        const el = event.target as HTMLElement;
+        key = el.innerHTML;
+
+        const willHaveSpace = ['mod-simbol', 'cos-simbol', 'sin-simbol', 'tan-simbol', 'cosh-simbol', 'sinh-simbol', 'tanh-simbol']
+        if(willHaveSpace.includes(el.id)) {
+            if(input.innerHTML === '') {
+                key = key + ' ';
+            } else {
+                key = ' ' + key + ' ';
+            }
+        } else if(el.id === 'cientNot') {
+            cientNotActive = true;
+            key = key.replace(/<sup>.*?<\/sup>/, '');
+            toggleMode('super')();
+        }
+    }
+
+    if(typeof mode !== 'undefined') { // se o segundo parametro veio algo, ou seja, sup ou sup
+        if (inputContent.length === 0) { // se o input não tem nada dentro
+            if(/[0-9]/.test(key)) { // se a tecla corresponte a algum item dessa regex
+                let newElement = document.createElement(mode) as HTMLElement;
+                input.appendChild(newElement);
+                newElement.innerHTML += key;
+    
+            } else {
+                input.innerHTML += key;
+            }
+        } else { // se já tem algo dentro do input
+            if(key.match(/[0-9]/)) { // se digitou um número
+            
+                if(inputContent.endsWith(`</${mode}>`)) { // se o input termina com o fechamento da tag
+                    input.innerHTML = inputContent.slice(0,-6) + key + `</${mode}>` // retira o fechamento da tag, adciona o key e fecha a tag
+        
+                } else { // se termina com qualquer outra string
+                    let newElement = document.createElement(mode) as HTMLElement;
+                    input.appendChild(newElement);
+                    newElement.innerHTML += key;
+                }
+            } else { // se digitou uma letra ou simbolo
+                input.innerHTML += key;
+            }
+        }
+    } else { // se não veio nada no parâmetro 2, só o preenche mesmo
+        input.innerHTML += key;
+    }
+
+    if (isKeyboardEvent) {
+        (event as KeyboardEvent).preventDefault();
+    }
+    //moveCursorToEnd(input)
+}
+
+    // Obs.: implementar verificação de onde está o cursor, se não tem nada depois dele, executa moveCursor, caso contrário, significa que tem algo depois dele e eu quero escrever ali.
+    //Obs.: verificar se dar pra mesclar as duas funções (buttonsFills e fillInput), já que ambas vão verificar se os modos sub e sup está ativo
+
+
+// funções de callback que estarão nos eventListeners em toggleMode e
+function subModeCallBack(event: KeyboardEvent) {
+    fillInput(event, 'sub');
+}
+
+function superModeCallBack(event: KeyboardEvent) {
+    fillInput(event, 'sup');
+}
+
 // função para alternar os modos entre super e sub ou desativa os dois
 function toggleMode(mode:string) {
     return ()=> {
@@ -129,91 +209,11 @@ function toggleMode(mode:string) {
             input.addEventListener('keydown', superModeCallBack);
             input.removeEventListener('keydown', subModeCallBack);
         } else {
-            // Se nenhum dos modos estiver ativo, remove ambos os event listeners e executa o preenchimento sem os subs
+            // Se nenhum dos modos estiver ativo, remove ambos os event listeners
             input.removeEventListener('keydown', subModeCallBack);
             input.removeEventListener('keydown', superModeCallBack);
-            input.addEventListener('keydown', (event)=>keyboardFills(event, ''));
         }
     }
-}
-
-// funcão que adiciona o conteúdo no input através do teclado, com ou sem sup/sub
-function keyboardFills(event:KeyboardEvent, mode:string) {
-
-    const validCharRegex = /^[0-9a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]$/;
-
-    if (!validCharRegex.test(event.key)) {
-        // Não faz nada se a tecla não for uma combinação válida, ou seja, a função test comparou a string key com cada caractere
-        return;
-    }
-
-    let inputContent = input.innerHTML;
-
-    if(typeof mode !== 'undefined') { // se o segundo parametro veio algo, ou seja, sup ou sup
-        if (inputContent.length === 0) { // se o input não tem nada dentro
-            if((event.key.match(/[0-9]/))) { // se a tecla digitada corresponte a algum item dessa regex (digitou um numero)
-                let newElement = document.createElement(mode) as HTMLElement;
-                input.appendChild(newElement);
-                newElement.innerHTML += event.key;
-    
-            } else if (event.key.match(/[a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]/)) { // se digitou uma letra
-                input.innerHTML = event.key
-
-            }
-        } else { // se já tem algo dentro do input
-            if(event.key.match(/[0-9]/)) { // se digitou um número
-            
-                if(inputContent.endsWith(`</${mode}>`)) { // se o input termina com fechamento da tag
-                    input.innerHTML = inputContent.slice(0,-6) + event.key + `</${mode}>` // retira o fechamento da tag, adciona o key e fecha a tag
-        
-                } else { // se termina com qualquer outra string
-                    let newElement = document.createElement(mode) as HTMLElement;
-                    input.appendChild(newElement);
-                    newElement.innerHTML += event.key;
-                }
-            } else if (event.key.match(/[a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]/)) { // se digitou uma letra ou simbolo
-                input.innerHTML = inputContent + event.key;
-            }
-        }
-    } else {
-        input.innerHTML += event.key;
-    }
-    event.preventDefault();
-    moveCursorToEnd(input)
-}
-
-// função que adiciona conteúdo no input através dos botões
-function buttonsFills(event:Event) {
-    let el = event.target as HTMLElement;
-    let content = el.innerHTML;
-
-    const spacedIds = ['mod-simbol', 'cos-simbol', 'sin-simbol', 'tan-simbol', 'cosh-simbol', 'sinh-simbol', 'tanh-simbol']
-    if(spacedIds.includes(el.id)) {
-        if(input.innerHTML === '') {
-            input.innerHTML += content + ' ';
-        } else {
-            input.innerHTML += ' ' + content;
-        }
-    } else if(el.id === 'cientNot') {
-        cientNotActive = true;
-        const extractedText = content.replace(/<sup>.*?<\/sup>/, '');
-        input.innerHTML += extractedText
-        toggleMode('super')();
-    } else {
-        input.innerHTML += content
-    }
-    // Obs.: implementar verificação de onde está o cursor, se não tem nada depois dele, executa moveCursor, caso contrário, significa que tem algo depois dele e eu quero escrever ali.
-    //Obs.: verificar se dar pra mesclar as duas funções (buttonsFills e keyboardFills), já que ambas vão verificar se os modos sub e sup está ativo
-    moveCursorToEnd(input)
-}
-
-// funções de callback que estarão nos eventListeners em toggleMode
-function subModeCallBack(event: KeyboardEvent) {
-    keyboardFills(event, 'sub');
-}
-
-function superModeCallBack(event: KeyboardEvent) {
-    keyboardFills(event, 'sup');
 }
 
 // adicionando os respectivos eventListeners de clique nos botões de sup e sub 
@@ -230,36 +230,11 @@ superMode.addEventListener('click', ()=> {
     toggleMode('super')();
 });
 
-// código para os botões que adicionam símbolos e etc
+// botões que adicionam símbolos e etc
 
-cientNot.addEventListener('click', buttonsFills)
-seven.addEventListener('click', buttonsFills);
-eight.addEventListener('click', buttonsFills);
-nine.addEventListener('click', buttonsFills);
-four.addEventListener('click', buttonsFills);
-five.addEventListener('click', buttonsFills);
-six.addEventListener('click', buttonsFills);
-one.addEventListener('click', buttonsFills);
-two.addEventListener('click', buttonsFills);
-tree.addEventListener('click', buttonsFills);
-zero.addEventListener('click', buttonsFills);
-point.addEventListener('click', buttonsFills);
-i.addEventListener('click', buttonsFills);
-modSimbol.addEventListener('click', buttonsFills);
-divideSimbol.addEventListener('click', buttonsFills);
-multiplySimbol.addEventListener('click', buttonsFills);
-subtractSimbol.addEventListener('click', buttonsFills);
-addSimbol.addEventListener('click', buttonsFills);
-parentTr.addEventListener('click',  buttonsFills);
-parentTl.addEventListener('click',  buttonsFills);
-pi.addEventListener('click',  buttonsFills);
-euler.addEventListener('click',  buttonsFills);
-cosSimbol.addEventListener('click',  buttonsFills);
-sinSimbol.addEventListener('click',  buttonsFills);
-tanSimbol.addEventListener('click',  buttonsFills);
-coshSimbol.addEventListener('click',  buttonsFills);
-sinhSimbol.addEventListener('click',  buttonsFills);
-tanhSimbol.addEventListener('click',  buttonsFills);
+document.querySelectorAll('.buttonsThatFill').forEach(button => {
+    button.addEventListener('click', (event) => fillInput(event, ''));
+});
 
 // código do Memory
 

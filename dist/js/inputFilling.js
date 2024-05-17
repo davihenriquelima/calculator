@@ -55,6 +55,76 @@ let subModeManuallyActive = false;
 let subModeActive = false;
 let superModeActive = false;
 let cientNotActive;
+function fillInput(event, mode) {
+    const validCharRegex = /^[0-9a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]$/;
+    let inputContent = input.innerHTML;
+    let key;
+    let isKeyboardEvent = false;
+    if (event instanceof KeyboardEvent) {
+        isKeyboardEvent = true;
+        key = event.key;
+        if (!validCharRegex.test(event.key)) {
+            return;
+        }
+    }
+    else {
+        const el = event.target;
+        key = el.innerHTML;
+        const willHaveSpace = ['mod-simbol', 'cos-simbol', 'sin-simbol', 'tan-simbol', 'cosh-simbol', 'sinh-simbol', 'tanh-simbol'];
+        if (willHaveSpace.includes(el.id)) {
+            if (input.innerHTML === '') {
+                key = key + ' ';
+            }
+            else {
+                key = ' ' + key + ' ';
+            }
+        }
+        else if (el.id === 'cientNot') {
+            cientNotActive = true;
+            key = key.replace(/<sup>.*?<\/sup>/, '');
+            toggleMode('super')();
+        }
+    }
+    if (typeof mode !== 'undefined') {
+        if (inputContent.length === 0) {
+            if (/[0-9]/.test(key)) {
+                let newElement = document.createElement(mode);
+                input.appendChild(newElement);
+                newElement.innerHTML += key;
+            }
+            else {
+                input.innerHTML += key;
+            }
+        }
+        else {
+            if (key.match(/[0-9]/)) {
+                if (inputContent.endsWith(`</${mode}>`)) {
+                    input.innerHTML = inputContent.slice(0, -6) + key + `</${mode}>`;
+                }
+                else {
+                    let newElement = document.createElement(mode);
+                    input.appendChild(newElement);
+                    newElement.innerHTML += key;
+                }
+            }
+            else {
+                input.innerHTML += key;
+            }
+        }
+    }
+    else {
+        input.innerHTML += key;
+    }
+    if (isKeyboardEvent) {
+        event.preventDefault();
+    }
+}
+function subModeCallBack(event) {
+    fillInput(event, 'sub');
+}
+function superModeCallBack(event) {
+    fillInput(event, 'sup');
+}
 function toggleMode(mode) {
     return () => {
         if (mode === 'sub') {
@@ -100,77 +170,8 @@ function toggleMode(mode) {
         else {
             input.removeEventListener('keydown', subModeCallBack);
             input.removeEventListener('keydown', superModeCallBack);
-            input.addEventListener('keydown', (event) => keyboardFills(event, ''));
         }
     };
-}
-function keyboardFills(event, mode) {
-    const validCharRegex = /^[0-9a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]$/;
-    if (!validCharRegex.test(event.key)) {
-        return;
-    }
-    let inputContent = input.innerHTML;
-    if (typeof mode !== 'undefined') {
-        if (inputContent.length === 0) {
-            if ((event.key.match(/[0-9]/))) {
-                let newElement = document.createElement(mode);
-                input.appendChild(newElement);
-                newElement.innerHTML += event.key;
-            }
-            else if (event.key.match(/[a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]/)) {
-                input.innerHTML = event.key;
-            }
-        }
-        else {
-            if (event.key.match(/[0-9]/)) {
-                if (inputContent.endsWith(`</${mode}>`)) {
-                    input.innerHTML = inputContent.slice(0, -6) + event.key + `</${mode}>`;
-                }
-                else {
-                    let newElement = document.createElement(mode);
-                    input.appendChild(newElement);
-                    newElement.innerHTML += event.key;
-                }
-            }
-            else if (event.key.match(/[a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\-]/)) {
-                input.innerHTML = inputContent + event.key;
-            }
-        }
-    }
-    else {
-        input.innerHTML += event.key;
-    }
-    event.preventDefault();
-    moveCursorToEnd(input);
-}
-function buttonsFills(event) {
-    let el = event.target;
-    let content = el.innerHTML;
-    const spacedIds = ['mod-simbol', 'cos-simbol', 'sin-simbol', 'tan-simbol', 'cosh-simbol', 'sinh-simbol', 'tanh-simbol'];
-    if (spacedIds.includes(el.id)) {
-        if (input.innerHTML === '') {
-            input.innerHTML += content + ' ';
-        }
-        else {
-            input.innerHTML += ' ' + content;
-        }
-    }
-    else if (el.id === 'cientNot') {
-        cientNotActive = true;
-        const extractedText = content.replace(/<sup>.*?<\/sup>/, '');
-        input.innerHTML += extractedText;
-        toggleMode('super')();
-    }
-    else {
-        input.innerHTML += content;
-    }
-    moveCursorToEnd(input);
-}
-function subModeCallBack(event) {
-    keyboardFills(event, 'sub');
-}
-function superModeCallBack(event) {
-    keyboardFills(event, 'sup');
 }
 subMode.addEventListener('click', () => {
     subModeManuallyActive = !subModeManuallyActive;
@@ -185,31 +186,6 @@ superMode.addEventListener('click', () => {
     }
     toggleMode('super')();
 });
-cientNot.addEventListener('click', buttonsFills);
-seven.addEventListener('click', buttonsFills);
-eight.addEventListener('click', buttonsFills);
-nine.addEventListener('click', buttonsFills);
-four.addEventListener('click', buttonsFills);
-five.addEventListener('click', buttonsFills);
-six.addEventListener('click', buttonsFills);
-one.addEventListener('click', buttonsFills);
-two.addEventListener('click', buttonsFills);
-tree.addEventListener('click', buttonsFills);
-zero.addEventListener('click', buttonsFills);
-point.addEventListener('click', buttonsFills);
-i.addEventListener('click', buttonsFills);
-modSimbol.addEventListener('click', buttonsFills);
-divideSimbol.addEventListener('click', buttonsFills);
-multiplySimbol.addEventListener('click', buttonsFills);
-subtractSimbol.addEventListener('click', buttonsFills);
-addSimbol.addEventListener('click', buttonsFills);
-parentTr.addEventListener('click', buttonsFills);
-parentTl.addEventListener('click', buttonsFills);
-pi.addEventListener('click', buttonsFills);
-euler.addEventListener('click', buttonsFills);
-cosSimbol.addEventListener('click', buttonsFills);
-sinSimbol.addEventListener('click', buttonsFills);
-tanSimbol.addEventListener('click', buttonsFills);
-coshSimbol.addEventListener('click', buttonsFills);
-sinhSimbol.addEventListener('click', buttonsFills);
-tanhSimbol.addEventListener('click', buttonsFills);
+document.querySelectorAll('.buttonsThatFill').forEach(button => {
+    button.addEventListener('click', (event) => fillInput(event, ''));
+});
