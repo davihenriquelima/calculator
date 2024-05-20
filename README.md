@@ -1,5 +1,7 @@
 Calculadora Avançada
 
+# CÓDIGO EM MANUTENÇÃO !!!!!
+
 ![screenshot](assets/images/screenshot.png)
 
 A Calculadora Avançada é uma aplicação web poderosa que oferece uma ampla gama de funcionalidades matemáticas avançadas. Ela é projetada para auxiliar em cálculos complexos, desde operações básicas até funções trigonométricas, exponenciais e muito mais.

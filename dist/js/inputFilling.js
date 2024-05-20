@@ -2,8 +2,10 @@
 const gbi = (el) => {
     return document.getElementById(el);
 };
+const input = document.querySelector('#editable-div');
 const subMode = gbi('subMode');
 const superMode = gbi('superMode');
+const buttonsThatFill = document.querySelectorAll('.buttonsThatFill');
 const cientNot = gbi('cientNot');
 const seven = gbi('number7');
 const eight = gbi('number8');
@@ -82,10 +84,11 @@ function fillInput(event, mode) {
         else if (el.id === 'cientNot') {
             cientNotActive = true;
             key = key.replace(/<sup>.*?<\/sup>/, '');
-            toggleMode('super')();
+            modeControl('super')();
         }
     }
-    if (typeof mode !== 'undefined') {
+    console.log(key);
+    if (mode !== '') {
         if (inputContent.length === 0) {
             if (/[0-9]/.test(key)) {
                 let newElement = document.createElement(mode);
@@ -113,19 +116,25 @@ function fillInput(event, mode) {
         }
     }
     else {
+        console.log('preenchendo só');
         input.innerHTML += key;
     }
-    if (isKeyboardEvent) {
-        event.preventDefault();
-    }
+    event.preventDefault();
+    moveCursorToEnd(input);
 }
 function subModeCallBack(event) {
+    console.log('subMode callback executado', event);
     fillInput(event, 'sub');
 }
-function superModeCallBack(event) {
+const superModeCallBack = (event) => {
+    console.log('superMode callback executado', event);
     fillInput(event, 'sup');
-}
-function toggleMode(mode) {
+};
+const noModeCallBack = (event) => {
+    console.log('noMode callback executado', event);
+    fillInput(event, '');
+};
+function modeControl(mode) {
     return () => {
         if (mode === 'sub') {
             subModeActive = !subModeActive;
@@ -160,22 +169,36 @@ function toggleMode(mode) {
         const isSubActive = subModeManuallyActive || activeModes.subModeActive;
         const isSuperActive = superModeManuallyActive || activeModes.superModeActive;
         if (isSubActive) {
-            input.addEventListener('keydown', subModeCallBack);
+            buttonsThatFill.forEach(button => button.removeEventListener('click', noModeCallBack));
+            buttonsThatFill.forEach(button => button.removeEventListener('click', superModeCallBack));
+            input.removeEventListener('keydown', noModeCallBack);
             input.removeEventListener('keydown', superModeCallBack);
+            buttonsThatFill.forEach(button => button.addEventListener('click', subModeCallBack));
+            input.addEventListener('keydown', subModeCallBack);
         }
         else if (isSuperActive) {
-            input.addEventListener('keydown', superModeCallBack);
+            buttonsThatFill.forEach(button => button.removeEventListener('click', noModeCallBack));
+            buttonsThatFill.forEach(button => button.removeEventListener('click', subModeCallBack));
+            input.removeEventListener('keydown', noModeCallBack);
             input.removeEventListener('keydown', subModeCallBack);
+            buttonsThatFill.forEach(button => button.addEventListener('click', superModeCallBack));
+            input.addEventListener('keydown', superModeCallBack);
         }
         else {
+            buttonsThatFill.forEach(button => button.removeEventListener('click', superModeCallBack));
+            buttonsThatFill.forEach(button => button.removeEventListener('click', subModeCallBack));
             input.removeEventListener('keydown', subModeCallBack);
             input.removeEventListener('keydown', superModeCallBack);
+            input.addEventListener('keydown', noModeCallBack);
+            buttonsThatFill.forEach(button => button.addEventListener('click', noModeCallBack));
         }
+        input.focus();
+        moveCursorToEnd;
     };
 }
 subMode.addEventListener('click', () => {
     subModeManuallyActive = !subModeManuallyActive;
-    toggleMode('sub')();
+    modeControl('sub')();
 });
 superMode.addEventListener('click', () => {
     if (cientNotActive && superModeActive) {
@@ -184,8 +207,7 @@ superMode.addEventListener('click', () => {
     else {
         superModeManuallyActive = !superModeManuallyActive;
     }
-    toggleMode('super')();
+    modeControl('super')();
 });
-document.querySelectorAll('.buttonsThatFill').forEach(button => {
-    button.addEventListener('click', (event) => fillInput(event, ''));
-});
+input.addEventListener('keydown', noModeCallBack);
+buttonsThatFill.forEach(button => button.addEventListener('click', noModeCallBack));

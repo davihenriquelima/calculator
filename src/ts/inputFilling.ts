@@ -4,8 +4,11 @@
 const gbi = (el:string):HTMLElement|null => {
     return document.getElementById(el);
 }
+
+const input = document.querySelector('#editable-div') as HTMLDivElement;
 const subMode = gbi('subMode') as HTMLButtonElement;
 const superMode = gbi('superMode') as HTMLButtonElement;
+const buttonsThatFill = document.querySelectorAll('.buttonsThatFill') as NodeList;
 const cientNot = gbi('cientNot') as HTMLButtonElement;
 const seven = gbi('number7') as HTMLButtonElement;
 const eight = gbi('number8') as HTMLButtonElement;
@@ -90,11 +93,11 @@ function fillInput(event:Event, mode:string) {
         } else if(el.id === 'cientNot') {
             cientNotActive = true;
             key = key.replace(/<sup>.*?<\/sup>/, '');
-            toggleMode('super')();
+            modeControl('super')();
         }
     }
-
-    if(typeof mode !== 'undefined') { // se o segundo parametro veio algo, ou seja, sup ou sup
+    console.log(key)
+    if(mode !== '') { // se o segundo parametro veio algo, ou seja, sup ou sup
         if (inputContent.length === 0) { // se o input não tem nada dentro
             if(/[0-9]/.test(key)) { // se a tecla corresponte a algum item dessa regex
                 let newElement = document.createElement(mode) as HTMLElement;
@@ -120,30 +123,34 @@ function fillInput(event:Event, mode:string) {
             }
         }
     } else { // se não veio nada no parâmetro 2, só o preenche mesmo
+        console.log('preenchendo só')
+        
         input.innerHTML += key;
     }
-
-    if (isKeyboardEvent) {
-        (event as KeyboardEvent).preventDefault();
-    }
-    //moveCursorToEnd(input)
+    event.preventDefault();
+    moveCursorToEnd(input)
 }
 
-    // Obs.: implementar verificação de onde está o cursor, se não tem nada depois dele, executa moveCursor, caso contrário, significa que tem algo depois dele e eu quero escrever ali.
-    //Obs.: verificar se dar pra mesclar as duas funções (buttonsFills e fillInput), já que ambas vão verificar se os modos sub e sup está ativo
+    // Obs.: implementar verificação de onde está o cursor, se não tem nada depois dele, executa moveCursortoEnd, caso contrário, significa que tem algo depois dele e eu quero escrever ali, ou algo parecido com isso
 
-
-// funções de callback que estarão nos eventListeners em toggleMode e
-function subModeCallBack(event: KeyboardEvent) {
+// funções de callback que estarão nos eventListeners em modeControl
+function subModeCallBack(event: Event | KeyboardEvent) {
+    console.log('subMode callback executado', event);
     fillInput(event, 'sub');
 }
 
-function superModeCallBack(event: KeyboardEvent) {
+const superModeCallBack = (event: Event | KeyboardEvent) => {
+    console.log('superMode callback executado', event);
     fillInput(event, 'sup');
 }
 
+const noModeCallBack = (event: Event | KeyboardEvent) => {
+    console.log('noMode callback executado', event);
+    fillInput(event, '');
+}
+
 // função para alternar os modos entre super e sub ou desativa os dois
-function toggleMode(mode:string) {
+function modeControl(mode:string) {
     return ()=> {
 
         if (mode === 'sub') {
@@ -164,7 +171,7 @@ function toggleMode(mode:string) {
 
             /* superModeActive estará sempre ativo através do controle recebido no 
             código do cientNot, que define cientNotActive como true. E ao clicar no botão 
-            supMode ele vai desativar o cientNotActive e executar toggleMode, que por sua vez, 
+            supMode ele vai desativar o cientNotActive e executar modeControl, que por sua vez, 
             na linha acima, vai desativar superModeActive, que nas linhas abaixo surtirá efeito visual,
             para que tenhamos o controle correto. Pois se foi clicado no botão cientNot, significa que
             foi adicionado o valor "x10" no input e espera-se um valor de potência, que deverá ser adicionado dentro do
@@ -201,25 +208,38 @@ function toggleMode(mode:string) {
 
         // Adiciona ou remove os event listeners de acordo com os modos ativos
         if (isSubActive) {
-            // Se o modo sub estiver ativo, adiciona o event listener de subModeCallBack e remove o de superModeCallBack
+            buttonsThatFill.forEach(button => button.removeEventListener('click', noModeCallBack));
+            buttonsThatFill.forEach(button => button.removeEventListener('click', superModeCallBack));
+            input.removeEventListener('keydown', noModeCallBack);
+            input.removeEventListener('keydown', superModeCallBack);
+            buttonsThatFill.forEach(button => button.addEventListener('click', subModeCallBack));
             input.addEventListener('keydown', subModeCallBack);
-            input.removeEventListener('keydown', superModeCallBack);
+            
         } else if (isSuperActive) {
-            // Se o modo super estiver ativo, adiciona o event listener de superModeCallBack e remove o de subModeCallBack
-            input.addEventListener('keydown', superModeCallBack);
+            buttonsThatFill.forEach(button => button.removeEventListener('click', noModeCallBack));
+            buttonsThatFill.forEach(button => button.removeEventListener('click', subModeCallBack));
+            input.removeEventListener('keydown', noModeCallBack);
             input.removeEventListener('keydown', subModeCallBack);
+            buttonsThatFill.forEach(button => button.addEventListener('click', superModeCallBack));
+            input.addEventListener('keydown', superModeCallBack);
         } else {
-            // Se nenhum dos modos estiver ativo, remove ambos os event listeners
+            // Se nenhum dos modos estiver ativo, remove ambos os event listeners, super e sub de input e dos botões
+            buttonsThatFill.forEach(button => button.removeEventListener('click', superModeCallBack));
+            buttonsThatFill.forEach(button => button.removeEventListener('click', subModeCallBack));
             input.removeEventListener('keydown', subModeCallBack);
             input.removeEventListener('keydown', superModeCallBack);
+            input.addEventListener('keydown', noModeCallBack);
+            buttonsThatFill.forEach(button => button.addEventListener('click', noModeCallBack));
         }
+        input.focus()
+        moveCursorToEnd
     }
 }
 
 // adicionando os respectivos eventListeners de clique nos botões de sup e sub 
 subMode.addEventListener('click', ()=> {
     subModeManuallyActive = !subModeManuallyActive;
-    toggleMode('sub')();
+    modeControl('sub')();
 });
 superMode.addEventListener('click', ()=> {
     if(cientNotActive && superModeActive) { // se cientNot está ativo e supMode também
@@ -227,14 +247,14 @@ superMode.addEventListener('click', ()=> {
     } else {
         superModeManuallyActive = !superModeManuallyActive; // caso contrário,apenas troca o modo
     }
-    toggleMode('super')();
+    modeControl('super')();
 });
 
-// botões que adicionam símbolos e etc
+// Adicionando eventListeners que executam sem modo super ou sub
 
-document.querySelectorAll('.buttonsThatFill').forEach(button => {
-    button.addEventListener('click', (event) => fillInput(event, ''));
-});
+input.addEventListener('keydown', noModeCallBack); 
+
+buttonsThatFill.forEach(button => button.addEventListener('click', noModeCallBack));
 
 // código do Memory
 

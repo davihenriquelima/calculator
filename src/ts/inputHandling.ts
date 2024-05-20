@@ -1,4 +1,4 @@
-const input = document.querySelector('#editable-div') as HTMLDivElement;
+
 
 // funções que tratam o cursor
 function getAllTextNodes(node: Node): Node[] { 

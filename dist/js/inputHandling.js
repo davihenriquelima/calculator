@@ -1,5 +1,4 @@
 "use strict";
-const input = document.querySelector('#editable-div');
 function getAllTextNodes(node) {
     const textNodes = [];
     function collectTextNodes(currentNode) {
